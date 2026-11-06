@@ -1,0 +1,183 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Игра</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #f7f3f9; padding-top: 50px; }
+        .box { background: white; padding: 30px; display: inline-block; border-radius: 20px; border: 2px solid #b39ddb; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h1 { color: #673ab7; margin-bottom: 20px; }
+        #problem { font-size: 40px; font-weight: bold; color: #311b92; margin-bottom: 20px; }
+        input { font-size: 24px; width: 150px; text-align: center; padding: 5px; border: 2px solid #d1c4e9; border-radius: 10px; outline: none; }
+        button { font-size: 20px; padding: 10px 20px; background: #7c4dff; color: white; border: none; border-radius: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h1>Математика на скорость</h1>
+    
+    <!-- Экран старта -->
+    <div id="start">
+        <p>30 секунд на старте. Каждые 4 примера сложность растет.</p>
+        <p>Верный ответ дает время. Ошибка: -2 очка и -3 секунды.</p>
+        <button onclick="start()">Старт</button>
+    </div>
+
+    <!-- Экран игры -->
+    <div id="play" style="display:none;">
+        <p id="info">Пример 1/60</p>
+        <p id="timer">Осталось времени: 30 сек</p>
+        <div id="problem">--</div>
+        <input type="number" id="ans" onkeydown="if(event.key==='Enter')check()">
+    </div>
+
+    <!-- Экран финиша -->
+    <div id="finish" style="display:none;">
+        <h2>Игра окончена!</h2>
+        <p id="res1">Очки: 0</p>
+        <p id="res2">Решено примеров: 0</p>
+        <p id="rank" style="font-size:20px; font-weight:bold; color:#7c4dff;"></p>
+        <button onclick="location.reload()">Еще раз</button>
+    </div>
+</div>
+
+<script>
+    var time = 30;
+    var score = 0;
+    var ex = 1;
+    var timer;
+    var rightAns = 0;
+    var bonus = 2;
+    var rightAnsCount = 0;
+
+    function start() {
+        document.getElementById("start").style.display = "none";
+        document.getElementById("play").style.display = "block";
+        makeProblem();
+        document.getElementById("ans").focus();
+        timer = setInterval(tick, 1000);
+    }
+
+    function tick() {
+        time = time - 1;
+        document.getElementById("timer").innerText = "Осталось времени: " + time + " сек";
+        if (time <= 0) {
+            end();
+        }
+    }
+
+    function makeProblem() {
+        var txt = "";
+        
+        if (ex <= 4) {
+            bonus = 2; var a = Math.floor(Math.random() * 5) + 1; var b = Math.floor(Math.random() * 5) + 1;
+            txt = a + " + " + b; rightAns = a + b;
+        } else if (ex <= 8) {
+            bonus = 2; var a = Math.floor(Math.random() * 5) + 1; var b = Math.floor(Math.random() * 5) + 1;
+            if (a < b) { var t = a; a = b; b = t; }
+            txt = a + " - " + b; rightAns = a - b;
+        } else if (ex <= 12) {
+            bonus = 2; var a = Math.floor(Math.random() * 15) + 1; var b = Math.floor(Math.random() * 15) + 1;
+            if (Math.random() > 0.5) { txt = a + " + " + b; rightAns = a + b; } 
+            else { if (a < b) { var t = a; a = b; b = t; } txt = a + " - " + b; rightAns = a - b; }
+        } else if (ex <= 16) {
+            bonus = 2; var a = Math.floor(Math.random() * 10) + 5; var b = Math.floor(Math.random() * 5) + 1; var c = Math.floor(Math.random() * 5) + 1;
+            txt = a + " - " + b + " + " + c; rightAns = a - b + c;
+        } else if (ex <= 20) {
+            bonus = 2; var a = Math.floor(Math.random() * 20) + 1; var b = Math.floor(Math.random() * 20) + 1;
+            if (Math.random() > 0.5) { txt = a + " + " + b; rightAns = a + b; } else { txt = a + " - " + b; rightAns = a - b; }
+        } else if (ex <= 24) {
+            bonus = 3; var a = Math.floor(Math.random() * 9) + 1; var b = Math.floor(Math.random() * 9) + 1;
+            txt = a + " * " + b; rightAns = a * b;
+        } else if (ex <= 28) {
+            bonus = 3; var a = Math.floor(Math.random() * 9) + 1; var b = Math.floor(Math.random() * 9) + 1;
+            if (Math.random() > 0.5) { txt = a + " * " + b; rightAns = a * b; } else { txt = (a * b) + " / " + a; rightAns = b; }
+        } else if (ex <= 32) {
+            bonus = 3; var a = Math.floor(Math.random() * 9) + 1; var b = Math.floor(Math.random() * 9) + 1; var c = Math.floor(Math.random() * 20) + 1;
+            txt = a + " * " + b + " + " + c; rightAns = (a * b) + c;
+        } else if (ex <= 36) {
+            bonus = 4; var a = Math.floor(Math.random() * 9) + 1; var b = Math.floor(Math.random() * 9) + 1; var c = Math.floor(Math.random() * 20) + 1;
+            txt = a + " * " + b + " - " + c; rightAns = (a * b) - c;
+        } else if (ex <= 40) {
+            bonus = 4; var a = Math.floor(Math.random() * 9) + 1; var b = Math.floor(Math.random() * 9) + 1; var c = Math.floor(Math.random() * 50) + 1;
+            txt = (a * b) + " / " + a + " + " + c; rightAns = b + c;
+        } else if (ex <= 44) {
+            bonus = 5; var a = Math.floor(Math.random() * 20) + 5; var b = Math.floor(Math.random() * 20) + 5;
+            txt = a + " * " + b; rightAns = a * b;
+        } else if (ex <= 48) {
+            bonus = 5; var a = Math.floor(Math.random() * 25) + 5; var b = Math.floor(Math.random() * 25) + 5;
+            txt = (a * b) + " / " + a; rightAns = b;
+        } else if (ex <= 52) {
+            bonus = 6; var a = Math.floor(Math.random() * 20) + 2; var b = Math.floor(Math.random() * 20) + 2; var c = Math.floor(Math.random() * 500) + 1;
+            txt = a + " * " + b + " + " + c; rightAns = (a * b) + c;
+        } else if (ex <= 56) {
+            bonus = 8; var a = Math.floor(Math.random() * 40) + 5; var b = Math.floor(Math.random() * 40) + 5; var c = Math.floor(Math.random() * 5000) + 1;
+            txt = a + " * " + b + " - " + c; rightAns = (a * b) - c;
+        } else {
+            bonus = 10; var a = Math.floor(Math.random() * 30) + 2; var b = Math.floor(Math.random() * 30) + 2; var c = Math.floor(Math.random() * 5000) + 1;
+            txt = a + " * " + b + " - " + c; rightAns = (a * b) - c;
+        }
+
+        document.getElementById("problem").innerText = txt;
+        document.getElementById("info").innerText = "Пример " + ex + "/60";
+    }
+
+    function check() {
+        var input = document.getElementById("ans");
+        var val = parseInt(input.value, 10);
+        if (isNaN(val)) return;
+
+        if (val === rightAns) {
+            score = score + 1;
+            time = time + bonus;
+            rightAnsCount = rightAnsCount + 1;
+        } else {
+            score = score - 2;
+            time = time - 3;
+            if (time < 0) time = 0;
+        }
+
+        input.value = "";
+        ex = ex + 1;
+
+        if (ex > 60) {
+            end();
+        } else {
+            makeProblem();
+        }
+    }
+
+    function end() {
+        clearInterval(timer);
+        document.getElementById("play").style.display = "none";
+        document.getElementById("finish").style.display = "block";
+        document.getElementById("res1").innerText = "Очки: " + score;
+        document.getElementById("res2").innerText = "Пройдено примеров: " + rightAnsCount;
+
+        var animal = "🐌 Улитка (0.05 км/ч)";
+        if (rightAnsCount >= 1 && rightAnsCount <= 3) animal = "🐛 Гусеница (0.2 км/ч)";
+        else if (rightAnsCount >= 4 && rightAnsCount <= 6) animal = "🦥 Ленивец (0.27 км/ч)";
+        else if (rightAnsCount >= 7 && rightAnsCount <= 9) animal = "🐢 Черепаха (1 км/ч)";
+        else if (rightAnsCount >= 10 && rightAnsCount <= 12) animal = "🐨 Коала (4 км/ч)";
+        else if (rightAnsCount >= 13 && rightAnsCount <= 15) animal = "🦔 Ёжик (6 км/ч)";
+        else if (rightAnsCount >= 16 && rightAnsCount <= 18) animal = "🐧 Пингвин (8 км/ч)";
+        else if (rightAnsCount >= 19 && rightAnsCount <= 21) animal = "🐼 Панда (10 км/ч)";
+        else if (rightAnsCount >= 22 && rightAnsCount <= 24) animal = "🦆 Утка (15 км/ч)";
+        else if (rightAnsCount >= 25 && rightAnsCount <= 27) animal = "🐈 Кот (30 км/ч)";
+        else if (rightAnsCount >= 28 && rightAnsCount <= 30) animal = "🐕 Собака (40 км/ч)";
+        else if (rightAnsCount >= 31 && rightAnsCount <= 33) animal = "🐓 Петух (14 км/ч)";
+        else if (rightAnsCount >= 34 && rightAnsCount <= 36) animal = "🐇 Заяц (50 км/ч)";
+        else if (rightAnsCount >= 37 && rightAnsCount <= 39) animal = "🦘 Кенгуру (60 км/ч)";
+        else if (rightAnsCount >= 40 && rightAnsCount <= 42) animal = "🦌 Олень (70 км/ч)";
+        else if (rightAnsCount >= 43 && rightAnsCount <= 45) animal = "🐎 Лошадь (75 км/ч)";
+        else if (rightAnsCount >= 46 && rightAnsCount <= 48) animal = "🐺 Волк (80 км/ч)";
+        else if (rightAnsCount >= 49 && rightAnsCount <= 51) animal = "🐆 Гепард (120 км/ч)";
+        else if (rightAnsCount >= 52 && rightAnsCount <= 55) animal = "🦅 Орел (160 км/ч)";
+        else if (rightAnsCount >= 56) animal = "🐉 ДРАКОН (1225 км/ч)";
+
+        document.getElementById("rank").innerText = "🏆 Ваш ранг: " + animal;
+    }
+</script>
+</body>
+</html>
